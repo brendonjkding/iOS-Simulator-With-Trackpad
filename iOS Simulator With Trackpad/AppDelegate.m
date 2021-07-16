@@ -46,6 +46,12 @@ static CGEventRef eventTapCallback(CGEventTapProxy proxy, CGEventType type, CGEv
 @implementation AppDelegate
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
+    // https://stackoverflow.com/questions/3885896/globally-hiding-cursor-from-background-app
+    extern void CGSSetConnectionProperty(int, int, CFStringRef, CFBooleanRef);
+    extern int _CGSDefaultConnection(void);
+    CFStringRef propertyString = CFStringCreateWithCString(NULL, "SetsCursorInBackground", kCFStringEncodingUTF8);
+    CGSSetConnectionProperty(_CGSDefaultConnection(), _CGSDefaultConnection(), propertyString, kCFBooleanTrue);
+
 	[NSWorkspace.sharedWorkspace.notificationCenter addObserver: self selector: @selector(workspaceDidActivateApplication:) name: NSWorkspaceDidActivateApplicationNotification object: nil];
 //	NSWindowDidResizeNotification
 	[self addStatusBar];
@@ -228,8 +234,10 @@ static CGEventRef eventTapCallback(CGEventTapProxy proxy, CGEventType type, CGEv
 		appDelegate.beginScrollPosition =
 		CGPointMake(event.locationInWindow.x, CGRectGetMaxY(NSScreen.mainScreen.frame) - event.locationInWindow.y);
 		appDelegate.currentScrollPosition = appDelegate.beginScrollPosition;
+        CGDisplayHideCursor(kCGDirectMainDisplay);
 	} else if (event.phase == NSEventPhaseEnded) {
 		NSLog(@"NSEventMaskEndGesture");
+        CGDisplayShowCursor(kCGDirectMainDisplay);
 		return end();
 	} else {
 		NSLog(@"NSEventMaskScrollWheel");
